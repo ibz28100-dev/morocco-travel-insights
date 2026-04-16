@@ -154,11 +154,12 @@ export const store = {
   },
 };
 
+import { useEffect, useState } from "react";
 export function useDB() {
-  const [, setTick] = (require("react") as typeof import("react")).useState(0);
-  (require("react") as typeof import("react")).useEffect(
-    () => store.subscribe(() => setTick((n) => n + 1)),
-    []
-  );
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const unsub = store.subscribe(() => setTick((n) => n + 1));
+    return () => { unsub; };
+  }, []);
   return store.getSnapshot();
 }
