@@ -14,7 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      destinations: {
+        Row: {
+          city_name: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          city_name: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          city_name?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          created_at: string
+          id: string
+          number_of_passengers: number
+          trip_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          number_of_passengers?: number
+          trip_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          number_of_passengers?: number
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transporters: {
+        Row: {
+          company_name: string
+          created_at: string
+          email: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          created_at: string
+          date: string
+          departure_city: string
+          destination_city: string
+          id: string
+          price: number
+          transporter_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          departure_city: string
+          destination_city: string
+          id?: string
+          price?: number
+          transporter_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          departure_city?: string
+          destination_city?: string
+          id?: string
+          price?: number
+          transporter_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trips_transporter_id_fkey"
+            columns: ["transporter_id"]
+            isOneToOne: false
+            referencedRelation: "transporters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
