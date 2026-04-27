@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Bus, MapPin, Building2, Ticket, FileBarChart, LogOut, Compass,
 } from "lucide-react";
-import { logout } from "@/lib/auth";
+import { signOut, useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -17,7 +17,8 @@ const items = [
 
 export function AppSidebar({ onNav }: { onNav?: () => void }) {
   const navigate = useNavigate();
-  const handleLogout = () => { logout(); navigate("/login"); };
+  const { user } = useAuth();
+  const handleLogout = async () => { await signOut(); navigate("/login"); };
 
   return (
     <aside className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground">
@@ -53,7 +54,7 @@ export function AppSidebar({ onNav }: { onNav?: () => void }) {
       <div className="border-t border-sidebar-border p-3">
         <div className="mb-2 rounded-lg bg-sidebar-accent/40 px-3 py-2">
           <div className="text-[11px] uppercase tracking-wide text-sidebar-foreground/50">Connecté</div>
-          <div className="text-sm font-semibold">admin</div>
+          <div className="text-sm font-semibold truncate">{user?.email ?? "—"}</div>
         </div>
         <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
           <LogOut className="mr-2 h-4 w-4" /> Déconnexion
