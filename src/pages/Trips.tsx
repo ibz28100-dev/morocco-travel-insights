@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useDB, store, Trip } from "@/data/store";
+import { useDB, useStore, Trip } from "@/data/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,7 @@ const empty = { transporter_id: "", departure_city: "", destination_city: "", da
 
 export default function Trips() {
   const db = useDB();
+  const store = useStore();
   const [search, setSearch] = useState("");
   const [destFilter, setDestFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
@@ -37,16 +38,21 @@ export default function Trips() {
   const openNew = () => { setEditing(null); setForm({ ...empty, transporter_id: db.transporters[0]?.id ?? "", departure_city: db.destinations[0]?.city_name ?? "", destination_city: db.destinations[1]?.city_name ?? "", date: new Date().toISOString().slice(0, 10) }); setOpen(true); };
   const openEdit = (t: Trip) => { setEditing(t); setForm(t); setOpen(true); };
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.transporter_id || !form.departure_city || !form.destination_city || !form.date || form.price <= 0) {
       toast.error("Veuillez remplir tous les champs"); return;
     }
-    if (editing) { store.updateTrip(editing.id, form); toast.success("Trajet modifié"); }
-    else { store.addTrip(form); toast.success("Trajet ajouté"); }
-    setOpen(false);
+    try {
+      if (editing) { await store.updateTrip(editing.id, form); toast.success("Trajet modifié"); }
+      else { await store.addTrip(form); toast.success("Trajet ajouté"); }
+      setOpen(false);
+    } catch (e: any) { toast.error(e.message); }
   };
 
-  const remove = (id: string) => { store.deleteTrip(id); toast.success("Trajet supprimé"); };
+  const remove = async (id: string) => {
+    try { await store.deleteTrip(id); toast.success("Trajet supprimé"); }
+    catch (e: any) { toast.error(e.message); }
+  };
 
   return (
     <div className="space-y-5">

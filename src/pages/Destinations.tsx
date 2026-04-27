@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDB, store, Destination } from "@/data/store";
+import { useDB, useStore, Destination } from "@/data/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -11,15 +11,18 @@ import { CITY_IMAGES, CITY_DESCRIPTIONS } from "@/data/cities";
 
 export default function Destinations() {
   const db = useDB();
+  const store = useStore();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Destination | null>(null);
   const [name, setName] = useState("");
 
-  const submit = () => {
+  const submit = async () => {
     if (!name.trim()) { toast.error("Nom de ville requis"); return; }
-    if (editing) { store.updateDestination(editing.id, { city_name: name }); toast.success("Destination modifiée"); }
-    else { store.addDestination({ city_name: name }); toast.success("Destination ajoutée"); }
-    setOpen(false); setName(""); setEditing(null);
+    try {
+      if (editing) { await store.updateDestination(editing.id, { city_name: name }); toast.success("Destination modifiée"); }
+      else { await store.addDestination({ city_name: name }); toast.success("Destination ajoutée"); }
+      setOpen(false); setName(""); setEditing(null);
+    } catch (e: any) { toast.error(e.message); }
   };
 
   return (
@@ -73,7 +76,7 @@ export default function Destinations() {
                   <Button size="sm" variant="ghost" onClick={() => { setEditing(d); setName(d.city_name); setOpen(true); }}>
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => { store.deleteDestination(d.id); toast.success("Supprimée"); }}>
+                  <Button size="sm" variant="ghost" onClick={async () => { try { await store.deleteDestination(d.id); toast.success("Supprimée"); } catch (e: any) { toast.error(e.message); } }}>
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>
                 </div>

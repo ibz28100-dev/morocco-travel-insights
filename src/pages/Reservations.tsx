@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useDB, store, Reservation } from "@/data/store";
+import { useDB, useStore, Reservation } from "@/data/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 
 export default function Reservations() {
   const db = useDB();
+  const store = useStore();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Reservation | null>(null);
@@ -27,11 +28,13 @@ export default function Reservations() {
     });
   }, [db, search]);
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.trip_id || form.number_of_passengers <= 0) { toast.error("Champs invalides"); return; }
-    if (editing) { store.updateReservation(editing.id, form); toast.success("Réservation modifiée"); }
-    else { store.addReservation(form); toast.success("Réservation ajoutée"); }
-    setOpen(false);
+    try {
+      if (editing) { await store.updateReservation(editing.id, form); toast.success("Réservation modifiée"); }
+      else { await store.addReservation(form); toast.success("Réservation ajoutée"); }
+      setOpen(false);
+    } catch (e: any) { toast.error(e.message); }
   };
 
   return (
@@ -100,7 +103,7 @@ export default function Reservations() {
                     <TableCell className="font-semibold text-primary">{t ? (t.price * r.number_of_passengers).toLocaleString("fr-FR") : 0} MAD</TableCell>
                     <TableCell className="text-right">
                       <Button size="icon" variant="ghost" onClick={() => { setEditing(r); setForm({ trip_id: r.trip_id, number_of_passengers: r.number_of_passengers }); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => { store.deleteReservation(r.id); toast.success("Supprimée"); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button size="icon" variant="ghost" onClick={async () => { try { await store.deleteReservation(r.id); toast.success("Supprimée"); } catch (e: any) { toast.error(e.message); } }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </TableCell>
                   </TableRow>
                 );
