@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDB, store, Transporter } from "@/data/store";
+import { useDB, useStore, Transporter } from "@/data/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -13,15 +13,18 @@ const empty = { company_name: "", phone: "", email: "" };
 
 export default function Transporters() {
   const db = useDB();
+  const store = useStore();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Transporter | null>(null);
   const [form, setForm] = useState(empty);
 
-  const submit = () => {
+  const submit = async () => {
     if (!form.company_name || !form.phone || !form.email) { toast.error("Tous les champs requis"); return; }
-    if (editing) { store.updateTransporter(editing.id, form); toast.success("Transporteur modifié"); }
-    else { store.addTransporter(form); toast.success("Transporteur ajouté"); }
-    setOpen(false);
+    try {
+      if (editing) { await store.updateTransporter(editing.id, form); toast.success("Transporteur modifié"); }
+      else { await store.addTransporter(form); toast.success("Transporteur ajouté"); }
+      setOpen(false);
+    } catch (e: any) { toast.error(e.message); }
   };
 
   return (
@@ -38,8 +41,8 @@ export default function Transporters() {
             <DialogHeader><DialogTitle>{editing ? "Modifier" : "Ajouter"} un transporteur</DialogTitle></DialogHeader>
             <div className="grid gap-3 py-2">
               <div className="space-y-2"><Label>Nom de la société</Label><Input value={form.company_name} onChange={(e) => setForm({ ...form, company_name: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Téléphone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-              <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Téléphone</Label><Input value={form.phone ?? ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+              <div className="space-y-2"><Label>Email</Label><Input type="email" value={form.email ?? ""} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             </div>
             <DialogFooter>
               <Button variant="ghost" onClick={() => setOpen(false)}>Annuler</Button>
@@ -78,8 +81,8 @@ export default function Transporters() {
                     <TableCell><div className="flex items-center gap-2 text-sm"><Mail className="h-3.5 w-3.5 text-muted-foreground" />{t.email}</div></TableCell>
                     <TableCell><span className="font-semibold">{trips}</span></TableCell>
                     <TableCell className="text-right">
-                      <Button size="icon" variant="ghost" onClick={() => { setEditing(t); setForm(t); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => { store.deleteTransporter(t.id); toast.success("Supprimé"); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => { setEditing(t); setForm({ company_name: t.company_name, phone: t.phone ?? "", email: t.email ?? "" }); setOpen(true); }}><Pencil className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={async () => { try { await store.deleteTransporter(t.id); toast.success("Supprimé"); } catch (e: any) { toast.error(e.message); } }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </TableCell>
                   </TableRow>
                 );

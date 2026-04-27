@@ -1,19 +1,33 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useDB } from "@/data/store";
 import { KpiCard } from "@/components/KpiCard";
 import { Card } from "@/components/ui/card";
 import { Bus, Users, MapPin, TrendingUp, DollarSign, BarChart3 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
-  LineChart, Line, PieChart, Pie, Cell, Legend, AreaChart, Area,
+  PieChart, Pie, Cell, Legend, AreaChart, Area,
 } from "recharts";
 import { CITY_IMAGES, CITY_DESCRIPTIONS } from "@/data/cities";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 const CHART_COLORS = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--chart-6))"];
 
 export default function Dashboard() {
   const db = useDB();
+  const qc = useQueryClient();
+  const seededRef = useRef(false);
+
+  useEffect(() => {
+    if (seededRef.current) return;
+    if (db.transporters.length === 0 && db.trips.length === 0) {
+      seededRef.current = true;
+      supabase.functions.invoke("seed-demo").then(() => {
+        qc.invalidateQueries({ queryKey: ["db"] });
+      });
+    }
+  }, [db, qc]);
 
   const stats = useMemo(() => {
     const totalTrips = db.trips.length;

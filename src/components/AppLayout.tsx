@@ -4,7 +4,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { AppSidebar } from "./AppSidebar";
-import { getSession } from "@/lib/auth";
+import { useAuth } from "@/lib/auth";
 
 const TITLES: Record<string, string> = {
   "/dashboard": "Tableau de bord",
@@ -16,12 +16,15 @@ const TITLES: Record<string, string> = {
 };
 
 export default function AppLayout() {
-  const session = getSession();
+  const { session, loading } = useAuth();
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Chargement...</div>;
+  }
   if (!session) return <Navigate to="/login" replace />;
 
   return (
